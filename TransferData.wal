@@ -1,0 +1,31 @@
+†defVar --name newHireData --type DataTable
+defVar --name iterator --type Numeric
+defVar --name firstName --type String
+defVar --name lastName --type String
+defVar --name gender --type String
+defVar --name dobText --type String
+defVar --name dobDate --type DateTime
+defVar --name dobConverted --type String
+readCSV --filepath "C:\\Users\\Nurjanah\\OneDrive\\Documents\\PELATIHAN\\ICSTAR HACKATHON 2023\\Hacktown2023\\IBM\\Exercise 1_2\\Exercise 1\\NewHireInfo.csv" --delimiter "," --hasheaders  --missingfieldaction "ParseError" newHireData=value
+logMessage --message "Data entry starting-- Processing${newHireData.Rows} entries." --type "Info"
+webStart --name web01 --type "Edge" --userprofilepreferences "AutomationOptimized" --downloadpath "C:\\Users\\Nurjanah\\AppData\\Local\\IBM Robotic Process Automation\\downloads"
+for --variable ${iterator} --from 1 --to ${newHireData.Rows} --step 1
+	mapTableRow --dataTable ${newHireData} --row ${iterator} --mappings "[{\"Name\":\"First Name\",\"Number\":null,\"Output\":\"${firstName}\"},{\"Name\":\"Last Name\",\"Number\":null,\"Output\":\"${lastName}\"},{\"Name\":\"Gender\",\"Number\":null,\"Output\":\"${gender}\"},{\"Name\":\"DOB\",\"Number\":null,\"Output\":\"${dobText}\"}]"
+	logMessage --message "Data entry for ${firstName} ${lastName}." --type "Info"
+	webNavigate --url "https://s.surveyplanet.com/ktxwh3t4"
+	webWaitElement --selector "XPath" --xpath "/html/body/div/div/footer/nav[1]/ul/li/a"
+	webClick --selector "XPath" --xpath "/html/body/div/div/footer/nav[1]/ul/li/a"
+	webWaitElement --selector "XPath" --xpath "/html/body/div/main/div[1]/div/div/textarea"
+	webSet --value "${firstName} ${lastName}" --selector "XPath" --xpath "/html/body/div/main/div[1]/div/div/textarea" --simulatehuman 
+	if --left "${gender}" --operator "Equal_To" --right Female
+		webClick --selector "XPath" --xpath "/html/body/div/main/div[2]/div/ul/li[1]/label/div" --simulatehuman 
+	else
+		webClick --selector "XPath" --xpath "/html/body/div/main/div[2]/div/ul/li[2]/label/div" --simulatehuman 
+	endIf
+	textToDateTime --text "${dobText}" dobDate=value
+	dateTimeToText --date "${dobDate}" --usecustomformat  --customformat "MM/dd/yyyy" dobConverted=value
+	webSet --value "${dobConverted}" --selector "XPath" --xpath "/html/body/div/main/div[3]/div/ul/li[1]/input" --simulatehuman 
+	webClick --selector "XPath" --xpath "/html/body/div/main/div[3]/footer/nav/ul/li/a"
+	webWaitElement --selector "XPath" --xpath "/html/body/div/main/section/div/div/div/h2"
+next
+webClose --name web01 --leavebrowseropen *23.0.7.0
